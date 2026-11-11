@@ -1,0 +1,884 @@
+<title>KruFlow วิทยา</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Kanit:wght@500;600&display=swap">
+<style>
+/* Layout: the same app shell as the school system (gradient top bar, side drawer, cards), recoloured orange / white / sky / grey. Deliberately single light theme, like the real product. */
+:root {
+  --orange: #f97316;
+  --orange-dark: #c2410c;
+  --orange-tint: #fff4ec;
+  --sky: #0ea5e9;
+  --sky-dark: #0369a1;
+  --sky-tint: #eaf6fd;
+  --grey-900: #1e293b;
+  --navy: #334155;
+  --grey-600: #64748b;
+  --grey-300: #cbd5e1;
+  --grey-100: #f1f5f9;
+  --white: #ffffff;
+  --present: #15803d;
+  --present-bg: #dcfce7;
+  --leave: #0369a1;
+  --leave-bg: #e0f2fe;
+  --absent: #c81e1e;
+  --absent-bg: #fee2e2;
+  --grad: linear-gradient(110deg, #ea580c 0%, #f97316 55%, #fb923c 100%);
+  --shadow: 0 1px 2px rgba(30, 41, 59, .05), 0 4px 16px rgba(30, 41, 59, .06);
+  --radius: 14px;
+  --font-body: "Sarabun", "Leelawadee UI", "Thonburi", system-ui, sans-serif;
+  --font-head: "Kanit", "Sarabun", system-ui, sans-serif;
+  color-scheme: light;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--grey-900);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--grey-100); line-height: 1.5; color: var(--grey-900); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: #ea580c; }
+h1 { font-family: var(--font-head); font-weight: 600; font-size: 1.45rem; margin: 0 0 18px; display: flex; align-items: center; gap: 10px; text-wrap: balance; }
+h1::before { content: ""; width: 6px; height: 1.3em; border-radius: 3px; background: linear-gradient(180deg, var(--orange), var(--sky)); flex: none; }
+h2 { font-family: var(--font-head); font-weight: 500; font-size: 1.1rem; margin: 24px 0 8px; }
+.muted { color: var(--grey-600); }
+.small { font-size: .86rem; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.nowrap { white-space: nowrap; }
+
+/* Demo strip */
+.demo-strip { background: var(--grey-900); color: #fff; font-size: .82rem; text-align: center; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.demo-strip b { color: #fdba74; }
+
+/* Top bar */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; align-items: center; gap: 10px; min-height: 62px; padding-block: 8px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); background: var(--grad); color: #fff; box-shadow: 0 2px 12px rgba(234, 88, 12, .25); border-bottom: 3px solid var(--sky); }
+.menu-btn { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.16); border: 0; border-radius: 12px; color: #fff; cursor: pointer; }
+.menu-btn:hover { background: rgba(255,255,255,.26); }
+.menu-btn svg, .drawer-close svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.brand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
+.logo { width: 42px; height: 42px; border-radius: 50%; background: #fff; padding: 3px; flex: none; box-shadow: 0 0 0 2px rgba(255,255,255,.35); object-fit: contain; }
+.brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.brand-name { font-family: var(--font-head); font-weight: 600; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: .78rem; opacity: .9; }
+.who { flex: none; max-width: 44%; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,.18); }
+.who-name { font-size: .85rem; font-weight: 600; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who-role { font-size: .72rem; opacity: .9; }
+@media (min-width: 640px) { .who { flex-direction: row; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; } .who-role { padding-left: 8px; border-left: 1px solid rgba(255,255,255,.45); font-size: .78rem; } }
+@media (max-width: 420px) { .brand-sub { display: none; } .logo { width: 36px; height: 36px; } .brand-name { font-size: .95rem; white-space: normal; line-height: 1.15; } .who { max-width: 36%; } }
+
+/* Drawer */
+.nav-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(15, 23, 42, .45); }
+.drawer { position: fixed; top: 0; bottom: 0; left: 0; z-index: 41; width: min(300px, 85vw); display: flex; flex-direction: column; overflow-y: auto; background: var(--white); box-shadow: 8px 0 30px rgba(0,0,0,.18); transform: translateX(-105%); transition: transform .22s ease; visibility: hidden; padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); }
+.drawer.open { transform: none; visibility: visible; }
+.drawer-head { display: flex; align-items: center; gap: 12px; padding: 18px 14px 18px 18px; background: var(--grad); color: #fff; }
+.drawer-head > div { flex: 1; min-width: 0; }
+.drawer-name { font-weight: 700; }
+.drawer-role { font-size: .82rem; opacity: .9; }
+.drawer-close { width: 40px; height: 40px; border: 0; border-radius: 10px; background: rgba(255,255,255,.18); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+.drawer-group { display: flex; flex-direction: column; padding: 8px; }
+.drawer-label { padding: 8px 20px 0; font-size: .78rem; font-weight: 600; color: var(--grey-600); letter-spacing: .02em; }
+.drawer a { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 14px; border-radius: 12px; color: var(--grey-900); text-decoration: none; }
+.drawer a:hover { background: var(--orange-tint); }
+.drawer a.active { background: var(--orange-tint); color: var(--orange-dark); font-weight: 700; box-shadow: inset 4px 0 var(--orange); }
+.drawer .ico { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+main { max-width: 1100px; margin: 0 auto; padding-top: 20px; padding-bottom: 130px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.card { background: var(--white); border: 1px solid var(--grey-300); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin-bottom: 16px; }
+
+/* Forms */
+label { display: block; font-size: .88rem; font-weight: 600; color: var(--grey-600); margin-bottom: 6px; }
+input, select, textarea { width: 100%; min-height: 44px; padding: 8px 12px; border: 1.5px solid var(--grey-300); border-radius: 10px; background: #fbfcfd; font: inherit; color: var(--grey-900); }
+textarea { min-height: 80px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 4px rgba(242, 107, 29, .16); background: #fff; }
+button:focus-visible, a:focus-visible { outline: 3px solid rgba(14, 165, 233, .5); outline-offset: 2px; }
+.field { margin-bottom: 12px; }
+.grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.grid > * { min-width: 0; }
+@media (min-width: 640px) { .grid-5, .grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .grid-5, .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .grid-5 { grid-template-columns: repeat(5, 1fr); } }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--grey-900); }
+.check input { width: 22px; min-height: 22px; height: 22px; accent-color: var(--orange); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent; background: linear-gradient(110deg, #ea580c, #f97316); color: #fff; box-shadow: 0 2px 8px rgba(234, 88, 12, .28); font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn:hover { filter: brightness(1.06); }
+.btn:active { transform: translateY(1px); }
+.btn-secondary { background: #fff; color: var(--sky-dark); border-color: #bfe3f7; box-shadow: none; }
+.btn-secondary:hover { background: var(--sky-tint); filter: none; }
+.btn-danger { background: var(--absent); box-shadow: none; }
+.btn-danger-outline { background: #fff; color: var(--absent); border-color: #fecaca; box-shadow: none; }
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: .9rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mt-1 { margin-top: 8px; } .mt-2 { margin-top: 16px; } .mb-0 { margin-bottom: 0; }
+
+.alert { padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; border: 1px solid; }
+.alert-info { background: var(--sky-tint); border-color: #bae6fd; color: #0c4a6e; }
+.empty { text-align: center; color: var(--grey-600); padding: 32px 8px; }
+
+/* Status list */
+.summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 999px; font-size: .88rem; font-weight: 600; }
+.chip-present { color: var(--present); background: var(--present-bg); }
+.chip-leave { color: var(--leave); background: var(--leave-bg); }
+.chip-absent { color: var(--absent); background: var(--absent-bg); }
+.chip-edit { color: #9a3412; background: #ffedd5; }
+.student-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+@media (min-width: 900px) { .student-list { grid-template-columns: 1fr 1fr; } }
+.student { background: var(--white); border: 1px solid var(--grey-300); border-radius: 14px; padding: 12px 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
+.student.st-absent { border-left: 5px solid var(--absent); }
+.student.st-leave { border-left: 5px solid var(--leave); }
+.student .name { font-weight: 600; min-width: 0; }
+.student .no { display: inline-block; min-width: 1.8em; color: var(--grey-600); font-variant-numeric: tabular-nums; }
+.status-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.status-group button { min-height: 42px; border-radius: 10px; border: 1.5px solid var(--grey-300); background: #fff; font: inherit; font-weight: 600; color: var(--grey-600); cursor: pointer; }
+.status-group button[aria-pressed="true"].s-present { background: var(--present); border-color: var(--present); color: #fff; }
+.status-group button[aria-pressed="true"].s-leave { background: var(--leave); border-color: var(--leave); color: #fff; }
+.status-group button[aria-pressed="true"].s-absent { background: var(--absent); border-color: var(--absent); color: #fff; }
+.note { min-height: 38px; font-size: .92rem; }
+.savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; padding-top: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: rgba(255,255,255,.94); border-top: 1px solid var(--grey-300); backdrop-filter: blur(6px); }
+.savebar .btn { width: 100%; max-width: 1068px; margin: 0 auto; display: flex; min-height: 52px; font-size: 1.05rem; }
+
+/* Stats & tables */
+.stat-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin-bottom: 16px; }
+@media (min-width: 640px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .stat-grid { grid-template-columns: repeat(6, 1fr); } }
+.stat { background: var(--white); border: 1px solid var(--grey-300); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); border-top: 4px solid var(--orange); }
+.stat:nth-child(2) { border-top-color: var(--sky); }
+.stat:nth-child(3) { border-top-color: var(--present); }
+.stat:nth-child(4) { border-top-color: var(--leave); }
+.stat:nth-child(5) { border-top-color: var(--absent); }
+.stat:nth-child(6) { border-top-color: var(--grey-600); }
+.stat .v { font-family: var(--font-head); font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat .k { font-size: .85rem; color: var(--grey-600); }
+.table-wrap { overflow-x: auto; background: var(--white); border: 1px solid var(--grey-300); border-radius: var(--radius); box-shadow: var(--shadow); }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th { text-align: left; font-weight: 600; font-size: .86rem; color: var(--grey-600); background: #f7f9fb; padding: 10px 12px; border-bottom: 1px solid var(--grey-300); white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--grey-100); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th.num { text-align: right; }
+.low { background: var(--absent-bg); color: var(--absent); font-weight: 700; }
+.text-danger { color: var(--absent); font-weight: 700; }
+.period-dots { display: flex; gap: 5px; flex-wrap: nowrap; }
+.period-dot { width: 28px; height: 28px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: .82rem; background: var(--grey-100); color: var(--grey-600); }
+.period-dot.done { background: var(--present); color: #fff; font-weight: 700; }
+.period-dot.lunch { background: transparent; border: 1px dashed var(--grey-300); }
+.search-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.search-row input { flex: 1 1 240px; max-width: 420px; }
+
+/* Dialogs & toast */
+dialog { border: 0; border-radius: 18px; padding: 0; width: min(440px, calc(100% - 32px)); box-shadow: 0 20px 50px rgba(0,0,0,.3); color: var(--grey-900); background: var(--white); }
+dialog::backdrop { background: rgba(15, 23, 42, .5); }
+.dlg-body { padding: 22px; }
+.dlg-body h2 { margin-top: 0; }
+.warn-body { text-align: center; }
+.warn-icon { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%; background: var(--absent-bg); color: var(--absent); font-size: 32px; font-weight: 700; line-height: 56px; }
+.warn-body h2 { color: var(--absent); margin-bottom: 6px; }
+.warn-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.warn-actions .btn { flex: 1 1 140px; }
+#toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 14px; color: #fff; font-weight: 600; background: var(--grey-900); box-shadow: 0 6px 20px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .2s; }
+#toast.show { opacity: 1; }
+#toast.success { background: var(--present); }
+#toast.info { background: var(--sky-dark); }
+/* Login */
+body.is-login .topbar, body.is-login .savebar { display: none; }
+.login-wrap { min-height: 70vh; display: grid; place-items: center; }
+.login-card { width: min(420px, 100%); background: var(--white); border: 1px solid var(--grey-300); border-radius: 20px; box-shadow: 0 10px 40px rgba(30,41,59,.12); padding: 28px 24px; text-align: center; border-top: 5px solid var(--orange); }
+.login-logo { width: 104px; height: 104px; display: block; margin: 0 auto 6px; }
+.login-card h1 { justify-content: center; margin-bottom: 2px; }
+.login-card h1::before { display: none; }
+.btn-google { width: 100%; background: #fff; color: #1f1f1f; border: 1px solid #dadce0; box-shadow: 0 1px 2px rgba(0,0,0,.08); gap: 10px; }
+.btn-google:hover { background: #f8f9fa; filter: none; }
+.or { display: flex; align-items: center; gap: 10px; color: var(--grey-600); font-size: .85rem; margin: 18px 0; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--grey-300); }
+.login-card form { text-align: left; }
+/* Tabs */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; background: var(--white); border: 1px solid var(--grey-300); border-radius: 14px; padding: 6px; margin-bottom: 16px; }
+.tabs button { border: 0; background: none; font: inherit; font-weight: 600; color: var(--grey-600); padding: 8px 16px; border-radius: 10px; cursor: pointer; min-height: 40px; }
+.tabs button[aria-selected="true"] { background: var(--orange); color: #fff; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--grey-100); color: var(--grey-600); }
+.badge-ok { background: var(--present-bg); color: var(--present); }
+.badge-warn { background: #ffedd5; color: #9a3412; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dropzone { border: 2px dashed #bae6fd; background: var(--sky-tint); border-radius: 14px; padding: 18px; text-align: center; color: var(--sky-dark); }
+/* Printable report preview */
+.sheet { background: #fff; border: 1px solid var(--grey-300); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; overflow-x: auto; font-size: 12px; color: #000; }
+.sheet .head { text-align: center; margin-bottom: 10px; }
+.sheet .head img { width: 44px; height: 44px; display: block; margin: 0 auto 2px; }
+.sheet .head h3 { font-size: 16px; margin: 2px 0; font-family: var(--font-head); font-weight: 600; }
+.sheet .meta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.sheet table { font-size: 11px; width: auto; min-width: 100%; }
+.sheet th, .sheet td { border: 1px solid #64748b; padding: 2px 4px; text-align: center; color: #000; background: #fff; }
+.sheet th { background: #f1f5f9; font-weight: 600; }
+.sheet td.l { text-align: left; white-space: nowrap; }
+.sheet .m-absent { color: #b91c1c; font-weight: 700; }
+.sheet .m-leave { color: #0369a1; }
+.sheet .lowp { color: #b91c1c; font-weight: 700; }
+.sheet .vert { writing-mode: vertical-rl; transform: rotate(180deg); height: 58px; font-weight: 400; font-size: 10px; }
+.sign { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 16px; margin-top: 30px; }
+.toolbar-print { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--navy); color: #fff; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+.toolbar-print .hint { font-size: .85rem; opacity: .85; }
+@media (prefers-reduced-motion: reduce) { .drawer, #toast { transition: none; } }
+</style>
+
+<div class="demo-strip">เว็บตัวอย่างระบบ <b>KruFlow</b> · ข้อมูลทั้งหมดเป็นข้อมูลสมมติ กดใช้งานได้ทุกปุ่ม</div>
+
+<header class="topbar">
+  <button id="menu-btn" class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="เปิดเมนู"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <a href="#record" class="brand"><img class="logo" data-logo alt="" src=""><span class="brand-text"><span class="brand-name">โรงเรียน KruFlow วิทยา</span><span class="brand-sub">ระบบบันทึกการสอน</span></span></a>
+  <div class="who"><span class="who-name">ครูอรุณี ศรีสว่าง</span><span class="who-role">ผู้ดูแลระบบ</span></div>
+</header>
+<div id="nav-backdrop" class="nav-backdrop" hidden></div>
+<nav id="nav" class="drawer" aria-label="เมนูหลัก">
+  <div class="drawer-head">
+    <img class="logo" data-logo alt="" src="">
+    <div><div class="drawer-name">ครูอรุณี ศรีสว่าง</div><div class="drawer-role">ผู้ดูแลระบบ</div></div>
+    <button id="menu-close" class="drawer-close" type="button" aria-label="ปิดเมนู"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="drawer-group">
+    <a href="#record" data-view="record"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>บันทึกการสอน</span></a>
+    <a href="#history" data-view="history"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>ประวัติการบันทึก</span></a>
+    <a href="#dashboard" data-view="dashboard"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>สรุปรายวัน</span></a>
+    <a href="#reports" data-view="reports"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span>รายงานรายเทอม</span></a>
+  </div>
+  <div class="drawer-label">ผู้ดูแลระบบ</div>
+  <div class="drawer-group">
+    <a href="#students" data-view="students"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg><span>จัดการนักเรียน</span></a>
+    <a href="#admin" data-view="admin"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>ตั้งค่าระบบ</span></a>
+    <a href="#audit" data-view="audit"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg><span>ประวัติการแก้ไข / สำรองข้อมูล</span></a>
+  </div>
+  <div class="drawer-label">อื่นๆ</div>
+  <div class="drawer-group">
+    <a href="#login" data-view="login"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>หน้าเข้าสู่ระบบ</span></a>
+    <a href="#features" data-view="features"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg><span>ความสามารถทั้งหมด</span></a>
+  </div>
+</nav>
+
+<main>
+  <!-- ===== Record ===== -->
+  <section id="view-record" data-page>
+    <h1>บันทึกการสอน</h1>
+    <section class="card" aria-label="เลือกคาบเรียน">
+      <div class="grid grid-5">
+        <div><label for="f-date">วันที่</label><input id="f-date" type="date"></div>
+        <div><label for="f-room">ห้อง</label><select id="f-room"></select></div>
+        <div><label for="f-period">คาบ</label><select id="f-period"></select></div>
+        <div><label for="f-area">กลุ่มสาระ</label><select id="f-area"></select></div>
+        <div><label for="f-subject">วิชา</label><select id="f-subject"></select></div>
+      </div>
+    </section>
+    <div id="saved-info" class="alert alert-info" hidden>
+      <div id="saved-text"></div>
+      <div id="saved-edit" class="muted small mt-1" hidden></div>
+      <div class="actions mt-1">
+        <button id="move-btn" class="btn btn-secondary btn-sm" type="button">ย้ายไปคาบอื่น</button>
+        <button id="delete-btn" class="btn btn-danger-outline btn-sm" type="button">ลบบันทึกนี้</button>
+      </div>
+    </div>
+    <div id="summary" class="summary" aria-live="polite"></div>
+    <ul id="students" class="student-list"></ul>
+    <div class="card mt-2">
+      <div class="field"><label class="check"><input id="f-sub" type="checkbox"> สอนแทน (คาบนี้ไม่ใช่คาบของฉัน)</label>
+        <select id="f-sub-teacher" class="mt-1" hidden aria-label="สอนแทนครู"></select></div>
+      <div class="field"><label for="f-topic">หัวข้อที่สอนวันนี้</label><input id="f-topic" maxlength="500" placeholder="เช่น สมการเชิงเส้นตัวแปรเดียว"></div>
+      <div class="field mb-0"><label for="f-activity">กิจกรรม / หมายเหตุ</label><textarea id="f-activity" maxlength="2000" placeholder="เช่น ทำแบบฝึกหัดหน้า 25 ข้อ 1-10"></textarea></div>
+    </div>
+    <div class="savebar"><button id="save-btn" class="btn" type="button">บันทึกการสอน</button></div>
+  </section>
+
+  <!-- ===== History ===== -->
+  <section id="view-history" data-page hidden>
+    <h1>ประวัติการบันทึกการสอน</h1>
+    <div class="search-row"><input id="h-q" type="search" placeholder="ค้นหาห้อง วิชา หรือหัวข้อ" aria-label="ค้นหาในประวัติ"></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>วันที่</th><th>คาบ</th><th>ห้อง</th><th>วิชา / หัวข้อ</th><th>สรุป</th></tr></thead>
+      <tbody id="h-body"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== Dashboard ===== -->
+  <section id="view-dashboard" data-page hidden>
+    <h1>สรุปการเข้าเรียนรายวัน</h1>
+    <div id="d-stats" class="stat-grid"></div>
+    <h2>รายห้อง</h2>
+    <p class="muted small">ช่องสีเขียว = คาบที่บันทึกแล้ว · ตัวเลขเป็นจำนวนคน นักเรียนหนึ่งคนนับครั้งเดียวต่อวัน</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ห้อง</th><th>คาบที่บันทึกแล้ว</th><th class="num">เช็คแล้ว (คน)</th><th class="num">มาครบ</th><th class="num">ลา</th><th class="num">ขาด</th></tr></thead>
+      <tbody id="d-rooms"></tbody>
+    </table></div>
+    <h2>นักเรียนที่ไม่ได้มาเรียนตามปกติ (แยกรายคาบ)</h2>
+    <div class="search-row"><input id="d-q" type="search" placeholder="ค้นหาชื่อนักเรียน ห้อง หรือวิชา" aria-label="ค้นหานักเรียน"><span id="d-count" class="muted small"></span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ห้อง</th><th>คาบ</th><th>นักเรียน</th><th>สถานะ</th><th>วิชา</th></tr></thead>
+      <tbody id="d-absent"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== Reports ===== -->
+  <section id="view-reports" data-page hidden>
+    <h1>รายงานการเข้าเรียนรายเทอม</h1>
+    <section class="card">
+      <div class="grid grid-3">
+        <div><label for="r-term">ภาคเรียน</label><select id="r-term"><option>ภาคเรียนที่ 2/2569 (ปัจจุบัน)</option></select></div>
+        <div><label for="r-room">ห้อง</label><select id="r-room"></select></div>
+        <div><label for="r-subject">วิชา</label><select id="r-subject"></select></div>
+      </div>
+      <p class="muted small mt-1 mb-0">เลือก "ทุกห้อง" หรือ "ทุกวิชา" เพื่อออกรายงานหลายรายการพร้อมกัน</p>
+      <div class="actions mt-2">
+        <button id="r-show" class="btn" type="button">แสดงรายงาน</button>
+        <button id="r-pdf" class="btn btn-secondary" type="button">พิมพ์ / บันทึกเป็น PDF</button>
+        <button id="r-xlsx" class="btn btn-secondary" type="button">ดาวน์โหลด Excel (.xlsx)</button>
+      </div>
+    </section>
+    <p id="r-caption" class="muted"></p>
+    <div class="table-wrap"><table>
+      <thead id="r-head"></thead>
+      <tbody id="r-body"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== Login ===== -->
+  <section id="view-login" data-page hidden>
+    <div class="login-wrap">
+      <div class="login-card">
+        <img class="login-logo" data-logo alt="KruFlow" src="">
+        <h1>โรงเรียน KruFlow วิทยา</h1>
+        <p class="muted mb-0">ระบบบันทึกการสอนและเวลาเรียน</p>
+        <div class="mt-2"><a class="btn btn-google" href="#record"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>เข้าสู่ระบบด้วย Google</a></div>
+        <div class="or">หรือใช้ชื่อผู้ใช้</div>
+        <form id="login-form">
+          <div class="field"><label for="l-user">ชื่อผู้ใช้</label><input id="l-user" autocomplete="off" value="arunee.s"></div>
+          <div class="field"><label for="l-pass">รหัสผ่าน</label><input id="l-pass" type="password" value="demo-password"></div>
+          <button class="btn" type="submit" style="width:100%">เข้าสู่ระบบ</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Students (admin) ===== -->
+  <section id="view-students" data-page hidden>
+    <h1>จัดการนักเรียน</h1>
+    <section class="card">
+      <h2 class="mt-0" style="margin-top:0">นำเข้ารายชื่อจาก Excel</h2>
+      <p class="muted small">ใช้ไฟล์ที่โรงเรียนมีอยู่แล้ว (คอลัมน์ เลขประจำตัว คำนำหน้า ชื่อ นามสกุล ห้อง เลขที่) ระบบตรวจรายชื่อซ้ำและแสดงตัวอย่างก่อนนำเข้าจริง</p>
+      <div class="dropzone"><b>ลากไฟล์ .xlsx มาวางที่นี่</b> หรือกดเพื่อเลือกไฟล์ · ไฟล์ล่าสุด: รายชื่อนักเรียน-2569.xlsx (371 คน, ผ่านการตรวจ)</div>
+    </section>
+    <section class="card">
+      <div class="row-between"><h2 style="margin:0">รายชื่อนักเรียน</h2><button class="btn btn-sm" type="button" data-demo="เพิ่มนักเรียนทีละคน">+ เพิ่มนักเรียนทีละคน</button></div>
+      <div class="grid grid-3 mt-2">
+        <div><label for="s-room">ห้อง</label><select id="s-room"></select></div>
+        <div><label for="s-q">ค้นหา (ชื่อ นามสกุล หรือเลขประจำตัว)</label><input id="s-q" type="search"></div>
+      </div>
+    </section>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ห้อง</th><th>เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ - สกุล</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody id="s-body"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== Settings (admin) ===== -->
+  <section id="view-admin" data-page hidden>
+    <h1>ตั้งค่าระบบ</h1>
+    <div class="tabs" role="tablist" id="a-tabs"></div>
+    <div class="row-between"><p id="a-hint" class="muted small mb-0"></p><button class="btn btn-sm" type="button" data-demo="เพิ่มรายการ">+ เพิ่ม</button></div>
+    <div class="search-row mt-2"><input id="a-q" type="search" aria-label="ค้นหาในตาราง"><span id="a-count" class="muted small"></span></div>
+    <div class="table-wrap"><table><thead id="a-head"></thead><tbody id="a-body"></tbody></table></div>
+  </section>
+
+  <!-- ===== Audit & backup (admin) ===== -->
+  <section id="view-audit" data-page hidden>
+    <h1>ประวัติการแก้ไข / สำรองข้อมูล</h1>
+    <section class="card">
+      <h2 style="margin-top:0">สำรองข้อมูลเป็น Excel</h2>
+      <p class="muted small">ไฟล์เดียวมีทุกอย่าง: บันทึกการสอนทุกคาบ สถานะมา/ลา/ขาดของนักเรียนทุกคน รายชื่อนักเรียน ครู รายวิชา ห้อง ภาคเรียน และคาบเรียน</p>
+      <div class="grid grid-3">
+        <div><label for="b-from">ตั้งแต่วันที่</label><input id="b-from" type="date" value="2026-11-02"></div>
+        <div><label for="b-to">ถึงวันที่</label><input id="b-to" type="date" value="2026-11-11"></div>
+      </div>
+      <div class="actions mt-2"><button class="btn" type="button" data-demo="ดาวน์โหลดไฟล์สำรองข้อมูล">ดาวน์โหลดไฟล์สำรองข้อมูล (.xlsx)</button></div>
+    </section>
+    <h2>ประวัติการแก้ไข</h2>
+    <div class="search-row"><input id="au-q" type="search" placeholder="ค้นหาชื่อครู ห้อง วิชา หรือนักเรียน" aria-label="ค้นหาในประวัติการแก้ไข"></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>เวลา</th><th>ผู้ทำ</th><th>การกระทำ</th><th>รายการ</th><th>รายละเอียด</th></tr></thead>
+      <tbody id="au-body"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== Printable report ===== -->
+  <section id="view-print" data-page hidden>
+    <div class="toolbar-print"><a href="#reports" class="btn btn-secondary btn-sm">← กลับ</a><button class="btn btn-sm" type="button" data-demo="พิมพ์ / บันทึกเป็น PDF">พิมพ์ / บันทึกเป็น PDF</button><span class="hint">กระดาษ A4 แนวนอน · พร้อมลงชื่อครูผู้สอนและผู้บริหาร</span></div>
+    <div id="print-sheets"></div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section id="view-features" data-page hidden>
+    <h1>ความสามารถของระบบ KruFlow</h1>
+    <div class="grid grid-3" id="feat-grid"></div>
+  </section>
+</main>
+
+<dialog id="warn-dialog" aria-labelledby="warn-title">
+  <div class="dlg-body warn-body">
+    <div class="warn-icon" aria-hidden="true">!</div>
+    <h2 id="warn-title"></h2>
+    <p id="warn-text" class="muted"></p>
+    <div class="warn-actions">
+      <button id="warn-cancel" class="btn btn-secondary" type="button">ยกเลิก กลับไปแก้</button>
+      <button id="warn-ok" class="btn btn-danger" type="button">ขาดจริง บันทึกเลย</button>
+    </div>
+  </div>
+</dialog>
+<dialog id="move-dialog" aria-labelledby="move-title">
+  <form class="dlg-body" id="move-form">
+    <h2 id="move-title">ย้ายบันทึกไปคาบอื่น</h2>
+    <p id="move-from" class="muted small"></p>
+    <div class="field"><label for="move-period">คาบที่ถูกต้อง</label><select id="move-period"></select></div>
+    <div class="actions"><button class="btn" type="submit">ย้าย</button><button class="btn btn-secondary" type="button" id="move-cancel">ยกเลิก</button></div>
+  </form>
+</dialog>
+<dialog id="del-dialog" aria-labelledby="del-title">
+  <div class="dlg-body warn-body">
+    <div class="warn-icon" aria-hidden="true">!</div>
+    <h2 id="del-title">ลบบันทึกนี้?</h2>
+    <p id="del-text" class="muted"></p>
+    <div class="warn-actions">
+      <button id="del-cancel" class="btn btn-secondary" type="button">ยกเลิก</button>
+      <button id="del-ok" class="btn btn-danger" type="button">ลบบันทึก</button>
+    </div>
+  </div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+// KruFlow logo (PNG, transparent background).
+const LOGO = "data:image/png;base64,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";
+for (const el of document.querySelectorAll("img[data-logo]")) el.src = LOGO;
+
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+let toastT;
+function toast(msg, kind = "") { const t = $("toast"); t.textContent = msg; t.className = "show " + kind; clearTimeout(toastT); toastT = setTimeout(() => (t.className = ""), 2800); }
+
+// ---------- Sample data (all fictional) ----------
+let seed = 20261111;
+const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+const pick = (a) => a[Math.floor(rnd() * a.length)];
+const BOY = ["ก้องภพ", "ธนกร", "ภูมิพัฒน์", "ณัฐวุฒิ", "กิตติพัศ", "ปัณณวัฒน์", "ศุภกร", "วรเมธ", "ธีรภัทร", "อนุชิต", "พงศกร", "ชยพล", "รัชพล", "ปิยะพงษ์", "เตชินท์"];
+const GIRL = ["ปุณยาพร", "ชนิกานต์", "กัญญาภัค", "พิมพ์ชนก", "ณัฐธิดา", "อรปรียา", "ศิริกาญจน์", "ภัทรวดี", "กมลชนก", "ธัญชนก", "สุพิชญา", "วรรณิดา", "เบญญาภา", "ปาริชาต", "นันทิชา"];
+const LAST = ["ใจงาม", "สุขประเสริฐ", "ทองมา", "ศรีสุข", "วงศ์ใหญ่", "แสงทอง", "บุญเรือง", "พรมมา", "ดวงดี", "รักไทย", "มีสุข", "คำแก้ว", "ชัยมงคล", "ปัญญาดี", "อินทร์แก้ว", "สายทอง"];
+const TODAY = "2026-11-11";
+const PERIODS = [
+  { id: 1, no: 1, t: "08:30-09:20" }, { id: 2, no: 2, t: "09:20-10:10" }, { id: 3, no: 3, t: "10:10-11:00" },
+  { id: 5, no: 5, t: "12:00-12:50" }, { id: 6, no: 6, t: "12:50-13:40" }, { id: 7, no: 7, t: "13:40-14:30" },
+];
+const AREAS = ["ภาษาไทย", "คณิตศาสตร์", "วิทยาศาสตร์และเทคโนโลยี", "สังคมศึกษา ศาสนาและวัฒนธรรม", "สุขศึกษาและพลศึกษา", "ศิลปะ", "การงานอาชีพ", "ภาษาต่างประเทศ"];
+const AREA_CODE = ["ท", "ค", "ว", "ส", "พ", "ศ", "ง", "อ"];
+const AREA_NAME = ["ภาษาไทย", "คณิตศาสตร์", "วิทยาศาสตร์", "สังคมศึกษา", "สุขศึกษา", "ศิลปะ", "การงานอาชีพ", "ภาษาอังกฤษ"];
+const ROOMS = [];
+for (let g = 1; g <= 6; g++) for (let r = 1; r <= 2; r++) ROOMS.push({ id: g * 10 + r, name: `ม.${g}/${r}`, grade: g });
+const SUBJECTS = [];
+for (let g = 1; g <= 6; g++) AREAS.forEach((a, i) => {
+  const lvl = g <= 3 ? 2 : 3, yr = g <= 3 ? g : g - 3;
+  SUBJECTS.push({ id: `${g}${i}`, code: `${AREA_CODE[i]}${lvl}${yr}10${g % 2 ? 1 : 2}`, name: `${AREA_NAME[i]} ${g}`, area: a, grade: g });
+});
+const TEACHERS = ["ครูอรุณี ศรีสว่าง", "ครูประเสริฐ ทองดี", "ครูวิไลวรรณ ใจซื่อ", "ครูสมชาย มั่นคง", "ครูกาญจนา แก้วใส", "ครูธวัชชัย บุญมา", "ครูนภัสสร พรหมวงศ์"];
+const STUDENTS = {};
+let code = 10401;
+for (const room of ROOMS) {
+  const n = 26 + Math.floor(rnd() * 9);
+  STUDENTS[room.id] = Array.from({ length: n }, (_, i) => {
+    const boy = rnd() < .5, young = room.grade <= 3;
+    const prefix = boy ? (young ? "ด.ช." : "นาย") : (young ? "ด.ญ." : "นางสาว");
+    return { id: `${room.id}-${i}`, no: i + 1, code: String(code++).padStart(5, "0"), name: `${prefix}${pick(boy ? BOY : GIRL)} ${pick(LAST)}` };
+  });
+}
+const roomSubjects = (rid) => SUBJECTS.filter((s) => s.grade === Math.floor(rid / 10));
+const TOPICS = ["การอ่านจับใจความ", "สมการเชิงเส้นตัวแปรเดียว", "ระบบนิเวศ", "ภูมิศาสตร์ประเทศไทย", "การออกกำลังกายเพื่อสุขภาพ", "หลักการวาดเส้น", "การทำบัญชีครัวเรือน", "Present Simple Tense"];
+
+// sessions: key room|date|period -> {room, period, date, subject, teacher, topic, statuses{sid:status}, editedBy, editedAt}
+const SESS = new Map();
+const key = (r, d, p) => `${r}|${d}|${p}`;
+function fakeSession(room, date, period, teacher, absentRate = .05) {
+  const subj = pick(roomSubjects(room.id));
+  const st = {};
+  for (const s of STUDENTS[room.id]) { const x = rnd(); st[s.id] = x < absentRate ? "absent" : x < absentRate + .04 ? "leave" : "present"; }
+  SESS.set(key(room.id, date, period.id), { room: room.id, date, period: period.id, subject: subj.id, teacher, topic: TOPICS[AREAS.indexOf(subj.area)], statuses: st, editedBy: null, editedAt: null });
+}
+for (const d of ["2026-11-09", "2026-11-10", TODAY]) for (const room of ROOMS) for (const p of PERIODS) {
+  if (d === TODAY && (p.no >= 5 || rnd() < .2)) continue; // today: morning periods only, a few still missing
+  fakeSession(room, d, p, pick(TEACHERS.slice(1)), .03 + rnd() * .05);
+}
+// A few of "my" sessions for the history page.
+for (const [d, rid, pid] of [["2026-11-10", 21, 1], ["2026-11-10", 22, 3], ["2026-11-09", 41, 2], ["2026-11-09", 11, 5]]) {
+  const s = SESS.get(key(rid, d, pid)); if (s) { s.teacher = TEACHERS[0]; s.subject = roomSubjects(rid)[0].id; s.topic = "การอ่านจับใจความ"; }
+}
+const s41 = SESS.get(key(41, "2026-11-09", 2)); if (s41) { s41.editedBy = TEACHERS[0]; s41.editedAt = "9 พ.ย. 69 15:42"; }
+SESS.delete(key(22, TODAY, 2)); // ม.2/2 period 2: open for the demo
+
+const subjOf = (id) => SUBJECTS.find((s) => s.id === id);
+const roomOf = (id) => ROOMS.find((r) => r.id === Number(id));
+const perOf = (id) => PERIODS.find((p) => p.id === Number(id));
+const TH_M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const thDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${TH_M[m - 1]} ${String(y + 543).slice(2)}`; };
+const LABEL = { present: "มา", leave: "ลา", absent: "ขาด" };
+
+function fill(sel, items, label, placeholder) {
+  sel.replaceChildren(...(placeholder ? [h("option", { value: "" }, placeholder)] : []), ...items.map((x) => h("option", { value: x.id }, label(x))));
+}
+
+// ---------- Record page ----------
+let students = [], current = null, dirty = false;
+fill($("f-room"), ROOMS, (r) => r.name);
+fill($("f-period"), PERIODS, (p) => `คาบ ${p.no} (${p.t})`);
+fill($("move-period"), PERIODS, (p) => `คาบ ${p.no} (${p.t})`, "เลือกคาบ");
+fill($("f-sub-teacher"), TEACHERS.slice(1).map((t) => ({ id: t, t })), (x) => x.t, "เลือกครูที่ไม่อยู่ (สอนแทนครู...)");
+$("f-date").value = TODAY; $("f-date").max = TODAY;
+$("f-room").value = "22"; $("f-period").value = "2";
+
+function fillAreas() {
+  fill($("f-area"), AREAS.map((a) => ({ id: a })), (x) => x.id, "เลือกกลุ่มสาระ");
+}
+function fillSubjects() {
+  const list = roomSubjects(Number($("f-room").value)).filter((s) => s.area === $("f-area").value);
+  fill($("f-subject"), list, (s) => `${s.code} ${s.name}`, $("f-area").value ? "เลือกวิชา" : "เลือกกลุ่มสาระก่อน");
+}
+function setSubject(id) { const s = subjOf(id); if (!s) return; $("f-area").value = s.area; fillSubjects(); $("f-subject").value = s.id; }
+fillAreas();
+
+function render() {
+  const c = { present: 0, leave: 0, absent: 0 };
+  students.forEach((s) => c[s.status]++);
+  $("summary").replaceChildren(...["present", "leave", "absent"].map((k) => h("span", { class: "chip chip-" + k }, `${LABEL[k]} ${c[k]}`)));
+  $("students").replaceChildren(...students.map((st) => {
+    const li = h("li", { class: "student" + (st.status !== "present" ? " st-" + st.status : "") });
+    const grp = h("div", { class: "status-group", role: "group", "aria-label": "สถานะของ " + st.name });
+    for (const k of ["present", "leave", "absent"]) grp.append(h("button", { type: "button", class: "s-" + k, "aria-pressed": String(st.status === k), onclick: () => { st.status = k; dirty = true; render(); } }, LABEL[k]));
+    li.append(h("div", { class: "name" }, h("span", { class: "no" }, st.no), " ", st.name), grp);
+    return li;
+  }));
+}
+
+function load() {
+  const room = Number($("f-room").value), date = $("f-date").value, per = Number($("f-period").value);
+  current = SESS.get(key(room, date, per)) || null;
+  students = STUDENTS[room].map((s) => ({ ...s, status: current ? current.statuses[s.id] : "present" }));
+  $("f-topic").value = current?.topic || ""; $("f-activity").value = "";
+  $("f-sub").checked = false; $("f-sub-teacher").hidden = true;
+  fillAreas(); fillSubjects();
+  if (current) {
+    setSubject(current.subject);
+    $("saved-text").textContent = `คาบนี้บันทึกแล้วโดย ${current.teacher} (${subjOf(current.subject).name}) · แก้ไขแล้วกดบันทึกอีกครั้งได้`;
+    $("saved-edit").textContent = current.editedBy ? `แก้ไขล่าสุดโดย ${current.editedBy} เมื่อ ${current.editedAt}` : "";
+    $("saved-edit").hidden = !current.editedBy;
+  } else {
+    const firstSubject = roomSubjects(room)[0]; setSubject(firstSubject.id);
+  }
+  $("saved-info").hidden = !current;
+  $("save-btn").textContent = current ? "บันทึกการแก้ไข" : "บันทึกการสอน";
+  dirty = false; render();
+}
+
+function nowText() { const d = new Date(); return `11 พ.ย. 69 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
+
+function ask(dlg, okId, cancelId) {
+  return new Promise((resolve) => {
+    const done = (v) => { dlg.close(); resolve(v); };
+    $(okId).onclick = () => done(true); $(cancelId).onclick = () => done(false);
+    dlg.oncancel = (e) => { e.preventDefault(); done(false); };
+    dlg.showModal(); $(cancelId).focus();
+  });
+}
+
+async function save() {
+  if (!$("f-subject").value) { toast("กรุณาเลือกวิชา"); return; }
+  const absent = students.filter((s) => s.status === "absent").length;
+  if (absent * 2 > students.length) {
+    $("warn-title").textContent = `มีนักเรียนขาด ${absent} จาก ${students.length} คน`;
+    $("warn-text").textContent = 'เกินครึ่งห้อง กรุณาตรวจสอบว่าไม่ได้กดผิด (ค่าเริ่มต้นของทุกคนคือ "มา")';
+    if (!(await ask($("warn-dialog"), "warn-ok", "warn-cancel"))) return;
+  }
+  const room = Number($("f-room").value), date = $("f-date").value, per = Number($("f-period").value);
+  const statuses = Object.fromEntries(students.map((s) => [s.id, s.status]));
+  const was = SESS.get(key(room, date, per));
+  SESS.set(key(room, date, per), { room, date, period: per, subject: $("f-subject").value, teacher: was ? was.teacher : TEACHERS[0], topic: $("f-topic").value.trim(), statuses, editedBy: was ? TEACHERS[0] : null, editedAt: was ? nowText() : null });
+  const c = { present: 0, leave: 0, absent: 0 }; students.forEach((s) => c[s.status]++);
+  toast(`บันทึกแล้ว: มา ${c.present} / ลา ${c.leave} / ขาด ${c.absent}`, "success");
+  load(); renderHistory(); renderDashboard();
+}
+
+$("save-btn").addEventListener("click", save);
+$("f-room").addEventListener("change", load);
+$("f-period").addEventListener("change", load);
+$("f-date").addEventListener("change", load);
+$("f-area").addEventListener("change", () => { fillSubjects(); dirty = true; });
+$("f-sub").addEventListener("change", () => { $("f-sub-teacher").hidden = !$("f-sub").checked; });
+
+$("move-btn").addEventListener("click", () => {
+  $("move-from").textContent = `ตอนนี้อยู่ที่ คาบ ${perOf($("f-period").value).no} วันที่ ${thDate($("f-date").value)} ห้อง ${roomOf($("f-room").value).name}`;
+  $("move-period").value = ""; $("move-dialog").showModal();
+});
+$("move-cancel").addEventListener("click", () => $("move-dialog").close());
+$("move-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const to = Number($("move-period").value); if (!to) { toast("กรุณาเลือกคาบที่ถูกต้อง"); return; }
+  const room = Number($("f-room").value), date = $("f-date").value, from = Number($("f-period").value);
+  const other = SESS.get(key(room, date, to));
+  if (other && to !== from) { toast(`คาบ ${perOf(to).no} มีบันทึกอยู่แล้วโดย ${other.teacher}`); return; }
+  const s = SESS.get(key(room, date, from)); SESS.delete(key(room, date, from));
+  s.period = to; s.editedBy = TEACHERS[0]; s.editedAt = nowText(); SESS.set(key(room, date, to), s);
+  $("move-dialog").close(); $("f-period").value = String(to);
+  toast(`ย้ายไปคาบ ${perOf(to).no} แล้ว`, "success"); load(); renderHistory(); renderDashboard();
+});
+$("delete-btn").addEventListener("click", async () => {
+  $("del-text").textContent = `คาบ ${perOf($("f-period").value).no} วันที่ ${thDate($("f-date").value)} ห้อง ${roomOf($("f-room").value).name} รวมข้อมูลมา/ลา/ขาดของนักเรียนทุกคน`;
+  if (!(await ask($("del-dialog"), "del-ok", "del-cancel"))) return;
+  SESS.delete(key($("f-room").value, $("f-date").value, $("f-period").value));
+  toast("ลบบันทึกแล้ว", "success"); load(); renderHistory(); renderDashboard();
+});
+
+// ---------- History ----------
+function counts(s) { const c = { present: 0, leave: 0, absent: 0 }; for (const v of Object.values(s.statuses)) c[v]++; return c; }
+function renderHistory() {
+  const q = $("h-q").value.replace(/\s+/g, "").toLowerCase();
+  const mine = [...SESS.values()].filter((s) => s.teacher === TEACHERS[0] || s.editedBy === TEACHERS[0])
+    .sort((a, b) => (b.date + b.period).localeCompare(a.date + a.period));
+  const rows = mine.filter((s) => !q || (roomOf(s.room).name + subjOf(s.subject).name + (s.topic || "")).replace(/\s+/g, "").toLowerCase().includes(q));
+  $("h-body").replaceChildren(...rows.map((s) => {
+    const c = counts(s);
+    return h("tr", {},
+      h("td", { class: "nowrap" }, thDate(s.date)), h("td", {}, perOf(s.period).no), h("td", { class: "nowrap" }, roomOf(s.room).name),
+      h("td", {}, h("div", {}, subjOf(s.subject).name), s.topic ? h("div", { class: "muted small" }, s.topic) : null,
+        s.editedBy ? h("div", { class: "muted small" }, `แก้ไขล่าสุดโดย ${s.editedBy} ${s.editedAt}`) : null),
+      h("td", { class: "small" }, ["present", "leave", "absent"].filter((k) => c[k]).map((k) => `${LABEL[k]} ${c[k]}`).join(" · ")));
+  }));
+  if (!rows.length) $("h-body").append(h("tr", {}, h("td", { colspan: "5", class: "empty" }, "ไม่พบรายการ")));
+}
+$("h-q").addEventListener("input", renderHistory);
+
+// ---------- Dashboard ----------
+function renderDashboard() {
+  const today = [...SESS.values()].filter((s) => s.date === TODAY);
+  let total = 0, checked = 0, P = 0, L = 0, A = 0, recP = 0, rec = 0;
+  const absentRows = [];
+  const rows = ROOMS.map((room) => {
+    const ss = today.filter((s) => s.room === room.id);
+    const worst = {};
+    for (const s of ss) for (const [sid, v] of Object.entries(s.statuses)) {
+      const rank = { present: 0, leave: 1, absent: 2 };
+      if (!(sid in worst) || rank[v] > rank[worst[sid]]) worst[sid] = v;
+      rec++; if (v === "present") recP++;
+      if (v !== "present") { const st = STUDENTS[room.id].find((x) => x.id === sid); absentRows.push({ room: room.name, p: perOf(s.period).no, st, v, subj: subjOf(s.subject).name }); }
+    }
+    const c = { present: 0, leave: 0, absent: 0 }; Object.values(worst).forEach((v) => c[v]++);
+    total += STUDENTS[room.id].length; checked += Object.keys(worst).length; P += c.present; L += c.leave; A += c.absent;
+    const done = new Set(ss.map((s) => perOf(s.period).no));
+    return h("tr", {},
+      h("td", { class: "nowrap" }, room.name),
+      h("td", {}, h("div", { class: "period-dots" }, [1, 2, 3, 4, 5, 6, 7].map((n) => h("span", { class: "period-dot" + (n === 4 ? " lunch" : done.has(n) ? " done" : ""), title: n === 4 ? "พักกลางวัน" : "คาบ " + n }, n === 4 ? "·" : n)))),
+      h("td", { class: "num" }, `${Object.keys(worst).length} / ${STUDENTS[room.id].length}`),
+      h("td", { class: "num" }, c.present), h("td", { class: "num" }, c.leave), h("td", { class: "num" + (c.absent ? " text-danger" : "") }, c.absent));
+  });
+  const stat = (v, k) => h("div", { class: "stat" }, h("div", { class: "v" }, v), h("div", { class: "k" }, k));
+  $("d-stats").replaceChildren(
+    stat(today.length, "คาบที่บันทึกแล้ววันนี้"), stat(`${checked} / ${total}`, "นักเรียนที่ถูกเช็คแล้ว (คน)"),
+    stat(P, "มาครบทุกคาบ (คน)"), stat(L, "ลาบางคาบ/ทั้งวัน (คน)"), stat(A, "ขาดอย่างน้อย 1 คาบ (คน)"),
+    stat(rec ? (100 * recP / rec).toFixed(1) + "%" : "-", "อัตราเข้าเรียนรายคาบ"));
+  $("d-rooms").replaceChildren(...rows);
+  const q = $("d-q").value.replace(/\s+/g, "").toLowerCase();
+  absentRows.sort((a, b) => a.room.localeCompare(b.room) || a.p - b.p);
+  const shown = absentRows.filter((r) => !q || (r.room + r.st.name + r.st.code + r.subj).replace(/\s+/g, "").toLowerCase().includes(q));
+  $("d-absent").replaceChildren(...shown.map((r) => h("tr", {},
+    h("td", { class: "nowrap" }, r.room), h("td", {}, r.p), h("td", {}, r.st.name, h("div", { class: "muted small" }, r.st.code)),
+    h("td", {}, h("span", { class: "chip chip-" + r.v }, LABEL[r.v])), h("td", { class: "small" }, r.subj))));
+  $("d-count").textContent = q ? `พบ ${shown.length} จาก ${absentRows.length} รายการ` : `${absentRows.length} รายการ`;
+}
+$("d-q").addEventListener("input", renderDashboard);
+
+// ---------- Reports ----------
+fill($("r-room"), [{ id: "all", name: "ทุกห้อง" }, ...ROOMS], (r) => r.name);
+fill($("r-subject"), [{ id: "all", code: "", name: "ทุกวิชา" }, ...SUBJECTS], (s) => (s.code ? `${s.code} ${s.name}` : s.name));
+$("r-room").value = "all"; $("r-subject").value = "all";
+function renderReport() {
+  const rv = $("r-room").value, sv = $("r-subject").value;
+  const ss = [...SESS.values()].filter((s) => (rv === "all" || s.room === Number(rv)) && (sv === "all" || s.subject === sv));
+  if (rv !== "all" && sv !== "all") {
+    const room = Number(rv);
+    $("r-head").replaceChildren(h("tr", {}, h("th", {}, "เลขที่"), h("th", {}, "ชื่อ - สกุล"), h("th", { class: "num" }, "มา"), h("th", { class: "num" }, "ลา"), h("th", { class: "num" }, "ขาด"), h("th", { class: "num" }, "ร้อยละ")));
+    $("r-body").replaceChildren(...STUDENTS[room].map((st) => {
+      const c = { present: 0, leave: 0, absent: 0 }; ss.forEach((s) => c[s.statuses[st.id]]++);
+      const n = c.present + c.leave + c.absent, pct = n ? 100 * c.present / n : null;
+      return h("tr", {}, h("td", {}, st.no), h("td", {}, st.name), h("td", { class: "num" }, c.present), h("td", { class: "num" }, c.leave), h("td", { class: "num" }, c.absent),
+        h("td", { class: "num" + (pct !== null && pct < 80 ? " low" : "") }, pct === null ? "-" : pct.toFixed(1)));
+    }));
+    $("r-caption").textContent = `${roomOf(room).name} · ${subjOf(sv).code} ${subjOf(sv).name} · ภาคเรียนที่ 2/2569 · บันทึกแล้ว ${ss.length} คาบ`;
+    return;
+  }
+  const groups = new Map();
+  for (const s of ss) { const k = s.room + "|" + s.subject; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); }
+  const items = [...groups.values()].sort((a, b) => a[0].room - b[0].room || subjOf(a[0].subject).code.localeCompare(subjOf(b[0].subject).code));
+  $("r-head").replaceChildren(h("tr", {}, h("th", {}, "ห้อง"), h("th", {}, "วิชา"), h("th", {}, "ผู้สอน"), h("th", { class: "num" }, "คาบ"), h("th", { class: "num" }, "นักเรียน"), h("th", { class: "num" }, "ต่ำกว่า 80%")));
+  $("r-body").replaceChildren(...items.slice(0, 60).map((g) => {
+    const room = g[0].room, studs = STUDENTS[room];
+    const low = studs.filter((st) => { const v = g.map((s) => s.statuses[st.id]); return v.filter((x) => x === "present").length / v.length < .8; }).length;
+    return h("tr", {}, h("td", { class: "nowrap" }, roomOf(room).name), h("td", {}, `${subjOf(g[0].subject).code} ${subjOf(g[0].subject).name}`),
+      h("td", { class: "small" }, [...new Set(g.map((s) => s.teacher))].join(", ")), h("td", { class: "num" }, g.length), h("td", { class: "num" }, studs.length),
+      h("td", { class: "num" + (low ? " low" : "") }, low));
+  }));
+  $("r-caption").textContent = `ภาคเรียนที่ 2/2569 · ${items.length} รายการ (ห้อง × วิชา) · บันทึกรวม ${ss.length} คาบ` + (items.length > 60 ? " · แสดง 60 รายการแรก" : "");
+}
+$("r-show").addEventListener("click", renderReport);
+$("r-pdf").addEventListener("click", () => { location.hash = "#print"; });
+$("r-xlsx").addEventListener("click", () => toast("ในระบบจริง: ได้ไฟล์ Excel แยกแผ่นงานทีละห้องและวิชา", "info"));
+
+// ---------- Features ----------
+const FEATS = [
+  ["เช็คชื่อในไม่กี่วินาที", "ทุกคนเป็น \"มา\" ตั้งแต่เปิดหน้า ครูกดแค่คนที่ลาหรือขาด ใช้บนมือถือได้สบาย"],
+  ["เข้าระบบด้วย Google", "ครูกดปุ่มเดียวด้วยอีเมลโรงเรียน ไม่ต้องจำรหัสผ่าน"],
+  ["กันกดผิด", "เตือนเมื่อขาดเกินครึ่งห้อง ย้ายบันทึกที่ผิดคาบได้ และเก็บประวัติว่าใครแก้อะไรเมื่อไร"],
+  ["สรุปรายวันทั้งโรงเรียน", "เห็นทันทีว่าห้องไหนเช็คแล้วกี่คาบ ใครขาด ใครลา นับเป็นจำนวนคนจริง"],
+  ["รายงานรายเทอม", "แบบบันทึกเวลาเรียน พิมพ์เป็น PDF หรือดาวน์โหลด Excel ทุกห้องพร้อมกัน"],
+  ["สำรองข้อมูลได้เอง", "แอดมินดาวน์โหลดข้อมูลทั้งหมดเป็น Excel เก็บไว้ได้ทุกเมื่อ"],
+  ["นำเข้ารายชื่อจาก Excel", "นำเข้ารายชื่อนักเรียนและรายวิชาจากไฟล์ที่โรงเรียนมีอยู่แล้ว"],
+  ["บันทึกสอนแทน", "ระบุได้ว่าคาบนี้สอนแทนครูท่านใด และแสดงในรายงาน"],
+  ["ค้นหาได้ทุกหน้า", "พิมพ์ชื่อครู วิชา หรือนักเรียน แล้วตารางกรองให้ทันที"],
+];
+$("feat-grid").replaceChildren(...FEATS.map(([t, d]) => h("div", { class: "card" }, h("h2", { class: "mb-0" }, t), h("p", { class: "muted mb-0" }, d))));
+
+// ---------- Login ----------
+$("login-form").addEventListener("submit", (e) => { e.preventDefault(); location.hash = "#record"; toast("เข้าสู่ระบบแล้ว", "success"); });
+for (const b of document.querySelectorAll("[data-demo]")) b.addEventListener("click", () => toast("เว็บตัวอย่าง: ปุ่ม \"" + b.dataset.demo + "\" ใช้ได้ในระบบจริง", "info"));
+
+// ---------- Students ----------
+fill($("s-room"), [{ id: "", name: "ทุกห้อง" }, ...ROOMS], (r) => r.name);
+$("s-room").value = "22";
+const STATUS_ST = { 0: ["กำลังศึกษา", "badge-ok"], 1: ["ลาออก / ย้ายออก", "badge-warn"] };
+function renderStudents() {
+  const rv = $("s-room").value, q = $("s-q").value.replace(/\s+/g, "");
+  const rows = [];
+  for (const room of ROOMS) if (!rv || String(room.id) === rv) for (const st of STUDENTS[room.id]) {
+    if (q && !(st.name + st.code).replace(/\s+/g, "").includes(q)) continue;
+    rows.push([room, st]);
+  }
+  $("s-body").replaceChildren(...rows.slice(0, 80).map(([room, st]) => {
+    const [label, cls] = STATUS_ST[st.code.endsWith("7") && room.id === 22 ? 1 : 0];
+    return h("tr", {}, h("td", { class: "nowrap" }, room.name), h("td", {}, st.no), h("td", {}, st.code), h("td", {}, st.name),
+      h("td", {}, h("span", { class: "badge " + cls }, label)), h("td", {}, h("button", { class: "btn btn-secondary btn-sm", type: "button", onclick: () => toast("เว็บตัวอย่าง: เปิดหน้าต่างแก้ไขข้อมูลนักเรียน", "info") }, "แก้ไข")));
+  }));
+}
+$("s-room").addEventListener("change", renderStudents); $("s-q").addEventListener("input", renderStudents);
+
+// ---------- Settings ----------
+const yes = (on, t = "ใช้งาน") => h("span", { class: "badge " + (on ? "badge-ok" : "") }, on ? t : "ปิด");
+const USERS = TEACHERS.map((t, i) => ({ name: t, user: ["arunee.s", "prasert.t", "wilaiwan.j", "somchai.m", "kanchana.k", "thawatchai.b", "napatsorn.p"][i], email: ["arunee.s", "prasert.t", "wilaiwan.j", "somchai.m", "kanchana.k", "thawatchai.b", "napatsorn.p"][i] + "@kruflow.ac.th", admin: i === 0 }));
+const TABS = {
+  users: ["ครูและผู้ดูแล", "ครูเข้าระบบด้วยปุ่ม Google หรือชื่อผู้ใช้และรหัสผ่าน ปิดบัญชีแทนการลบ เพื่อเก็บประวัติการบันทึกการสอน", "ค้นหาชื่อครู ชื่อผู้ใช้ หรืออีเมล",
+    ["ชื่อ - สกุล", "ชื่อผู้ใช้", "อีเมล Google", "สิทธิ์", "สถานะ"], () => USERS.map((u) => [u.name, u.user, u.email, u.admin ? "ผู้ดูแลระบบ" : "ครู", yes(true)])],
+  terms: ["ภาคเรียน", "ระบบใช้วันที่บันทึกการสอนเพื่อจัดเข้าเทอมอัตโนมัติ", "ค้นหาภาคเรียน",
+    ["ภาคเรียน", "เริ่ม", "สิ้นสุด", ""], () => [["2/2569", "2 พ.ย. 2569", "19 มี.ค. 2570", h("span", { class: "badge badge-ok" }, "เทอมปัจจุบัน")], ["1/2569", "16 พ.ค. 2569", "10 ต.ค. 2569", ""]]],
+  rooms: ["ห้องเรียน", "ห้องจะถูกสร้างอัตโนมัติเมื่อนำเข้ารายชื่อนักเรียน", "ค้นหาห้อง เช่น ม.4",
+    ["ห้อง", "ปีการศึกษา", "นักเรียน", "สถานะ"], () => ROOMS.map((r) => [r.name, "2569", STUDENTS[r.id].length + " คน", yes(true)])],
+  subjects: ["รายวิชา", "วิชาที่ปิดจะไม่แสดงในหน้าบันทึกการสอน แต่ยังอยู่ในรายงานย้อนหลัง · นำเข้าหลายวิชาจาก Excel ได้", "ค้นหารหัสวิชา ชื่อวิชา ชั้น หรือกลุ่มสาระ",
+    ["รหัสวิชา", "ชื่อวิชา", "ชั้น", "กลุ่มสาระ", "สถานะ"], () => SUBJECTS.map((x) => [x.code, x.name, "ม." + x.grade, x.area, yes(true)])],
+  periods: ["คาบเรียน", "เวลาคาบใช้เลือกคาบปัจจุบันให้อัตโนมัติในหน้าบันทึกการสอน", "ค้นหาคาบ",
+    ["คาบที่", "เวลา"], () => PERIODS.map((p) => [p.no, p.t.replace("-", " - ")])],
+};
+let tab = "users";
+function renderAdmin() {
+  const [, hint, ph, cols, rowsFn] = TABS[tab];
+  $("a-tabs").replaceChildren(...Object.entries(TABS).map(([k, v]) => h("button", { type: "button", role: "tab", "aria-selected": String(k === tab), onclick: () => { tab = k; $("a-q").value = ""; renderAdmin(); } }, v[0])));
+  $("a-hint").textContent = hint; $("a-q").placeholder = ph;
+  $("a-head").replaceChildren(h("tr", {}, cols.map((c) => h("th", {}, c)), h("th", {})));
+  const q = $("a-q").value.replace(/\s+/g, "").toLowerCase();
+  const all = rowsFn();
+  const rows = all.filter((r) => !q || r.map((c) => (c instanceof Node ? c.textContent : String(c))).join("").replace(/\s+/g, "").toLowerCase().includes(q));
+  $("a-body").replaceChildren(...rows.map((r) => h("tr", {}, r.map((c) => h("td", {}, c)), h("td", {}, h("button", { class: "btn btn-secondary btn-sm", type: "button", onclick: () => toast("เว็บตัวอย่าง: เปิดหน้าต่างแก้ไข", "info") }, "แก้ไข")))));
+  $("a-count").textContent = q ? `พบ ${rows.length} จาก ${all.length} รายการ` : "";
+}
+$("a-q").addEventListener("input", renderAdmin);
+
+// ---------- Audit ----------
+const AUDIT = [
+  ["11 พ.ย. 69 14:52", TEACHERS[1], "ย้ายคาบ", "chip-edit", "ม.4/2 คาบ 6 11 พ.ย. 69 · ภาษาไทย 4 (ผู้บันทึก ครูประเสริฐ ทองดี)", "จาก คาบ 7 → คาบ 6"],
+  ["11 พ.ย. 69 13:15", TEACHERS[0], "แก้ไข", "chip-edit", "ม.2/1 คาบ 3 11 พ.ย. 69 · คณิตศาสตร์ 2 (ผู้บันทึก ครูสมชาย มั่นคง)", "เปลี่ยนสถานะ 2 คน: มา→ลา, ขาด→มา"],
+  ["11 พ.ย. 69 10:41", TEACHERS[4], "ลบ", "chip-absent", "ม.5/1 คาบ 2 11 พ.ย. 69 · ศิลปะ 5 (ผู้บันทึก ครูกาญจนา แก้วใส)", "ลบทั้งรายการ (นักเรียน 34 คน หัวข้อ: หลักการวาดเส้น)"],
+  ["10 พ.ย. 69 16:20", TEACHERS[0], "นำเข้า", "chip-leave", "รายวิชาจากไฟล์ Excel", "เพิ่มใหม่ 12 · ปรับปรุง 3"],
+  ["10 พ.ย. 69 09:05", TEACHERS[0], "แก้ไข", "chip-edit", "นักเรียน 10417 ด.ญ.ชนิกานต์ ทองมา", "แก้ สถานะ: ลาออก / ย้ายออก"],
+  ["9 พ.ย. 69 15:42", TEACHERS[0], "แก้ไข", "chip-edit", "ม.4/1 คาบ 2 9 พ.ย. 69 · ภาษาไทย 4 (ผู้บันทึก ครูอรุณี ศรีสว่าง)", "แก้หัวข้อ/วิชา/หมายเหตุ"],
+  ["9 พ.ย. 69 08:12", TEACHERS[0], "สร้าง", "chip-present", "บัญชีครู ครูนภัสสร พรหมวงศ์", "เข้าระบบด้วย Google"],
+];
+function renderAudit() {
+  const q = $("au-q").value.replace(/\s+/g, "");
+  $("au-body").replaceChildren(...AUDIT.filter((r) => !q || r.join("").replace(/\s+/g, "").includes(q)).map(([t, who, act, cls, what, ch]) => h("tr", {},
+    h("td", { class: "nowrap small" }, t), h("td", { class: "small" }, who), h("td", {}, h("span", { class: "chip " + cls }, act)), h("td", { class: "small" }, what), h("td", { class: "small" }, ch))));
+}
+$("au-q").addEventListener("input", renderAudit);
+
+// ---------- Printable report: ม.2/2 ภาษาไทย 2 over the term so far ----------
+function renderPrint() {
+  const room = 22, subj = roomSubjects(room)[0];
+  const dates = [];
+  for (let d = new Date(2026, 5, 1); dates.length < 18; d.setDate(d.getDate() + 1)) {
+    if (![1, 3, 5].includes(d.getDay())) continue; // Mon, Wed, Fri
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    dates.push({ iso, p: [1, 3, 5].includes(d.getDay()) ? 3 : 6 });
+  }
+  const studs = STUDENTS[room];
+  const marks = studs.map(() => dates.map(() => { const x = rnd(); return x < .05 ? "absent" : x < .09 ? "leave" : "present"; }));
+  marks[4] = marks[4].map((v, i) => (i % 3 === 0 ? "absent" : v)); // one student who needs following up
+  const M = { present: "/", leave: "ล", absent: "ข" };
+  const head = h("tr", {}, h("th", { rowspan: "2" }, "เลขที่"), h("th", { rowspan: "2" }, "เลขประจำตัว"), h("th", { rowspan: "2" }, "ชื่อ - สกุล"),
+    dates.map((d) => h("th", {}, h("div", { class: "vert" }, thDate(d.iso)))), ["มา", "ลา", "ขาด", "ร้อยละ"].map((t) => h("th", { rowspan: "2" }, t)));
+  const head2 = h("tr", {}, dates.map((d) => h("th", { style: "font-size:9px;font-weight:400" }, "คาบ " + d.p)));
+  const body = studs.map((st, i) => {
+    const c = { present: 0, leave: 0, absent: 0 }; marks[i].forEach((v) => c[v]++);
+    const pct = 100 * c.present / dates.length;
+    return h("tr", {}, h("td", {}, st.no), h("td", {}, st.code), h("td", { class: "l" }, st.name),
+      marks[i].map((v) => h("td", { class: "m-" + v }, M[v])), h("td", {}, c.present), h("td", {}, c.leave), h("td", {}, c.absent),
+      h("td", { class: pct < 80 ? "lowp" : "" }, pct.toFixed(1)));
+  });
+  const topics = ["การอ่านจับใจความ", "คำนามและคำสรรพนาม", "การเขียนเรียงความ", "วรรณคดีไทย: นิราศภูเขาทอง", "ทดสอบย่อย", "การพูดในที่ชุมชน"];
+  $("print-sheets").replaceChildren(
+    h("div", { class: "sheet" },
+      h("div", { class: "head" }, h("img", { src: LOGO, alt: "" }), h("div", {}, h("b", {}, "โรงเรียน KruFlow วิทยา")), h("h3", {}, "แบบบันทึกเวลาเรียน"),
+        h("div", { class: "meta" }, h("span", {}, "ชั้น ม.2/2"), h("span", {}, `วิชา ${subj.code} ${subj.name}`), h("span", {}, "ภาคเรียนที่ 1 ปีการศึกษา 2569"))),
+      h("table", {}, h("thead", {}, head, head2), h("tbody", {}, body)),
+      h("p", { class: "small" }, "สัญลักษณ์: / = มา, ล = ลา, ข = ขาด · ร้อยละ = มา ÷ จำนวนคาบที่บันทึก · ตัวแดง = ต่ำกว่าร้อยละ 80")),
+    h("div", { class: "sheet" },
+      h("h3", { style: "font-family:var(--font-head);font-weight:600;font-size:15px;margin:0 0 8px" }, `บันทึกหัวข้อการสอน ม.2/2 ${subj.code} ${subj.name} (${dates.length} คาบ)`),
+      h("table", {}, h("thead", {}, h("tr", {}, ["ที่", "วันที่", "คาบ", "หัวข้อที่สอน", "กิจกรรม / หมายเหตุ", "ผู้สอน"].map((t) => h("th", {}, t)))),
+        h("tbody", {}, dates.slice(0, 10).map((d, i) => h("tr", {}, h("td", {}, i + 1), h("td", {}, thDate(d.iso)), h("td", {}, d.p), h("td", { class: "l" }, topics[i % topics.length]),
+          h("td", { class: "l" }, i % 4 === 3 ? "ใบงานที่ " + (i + 1) : "ทำแบบฝึกหัดท้ายบท"), h("td", { class: "l" }, i === 6 ? "ครูประเสริฐ ทองดี (สอนแทน ครูอรุณี ศรีสว่าง)" : "ครูอรุณี ศรีสว่าง"))))),
+      h("div", { class: "sign" }, h("div", {}, "ลงชื่อ ........................................ ครูผู้สอน"), h("div", {}, "ลงชื่อ ........................................ ผู้บริหาร")),
+      h("p", { class: "small muted" }, "พิมพ์เมื่อ 12 ตุลาคม 2569 โดย ครูอรุณี ศรีสว่าง · ตัวอย่างแสดง 18 คาบแรกของภาคเรียน")));
+}
+
+// ---------- Routing & drawer ----------
+const VIEWS = ["record", "history", "dashboard", "reports", "features", "login", "students", "admin", "audit", "print"];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "record";
+  for (const sec of document.querySelectorAll("[data-page]")) sec.hidden = sec.id !== "view-" + v;
+  for (const a of document.querySelectorAll(".drawer a")) a.classList.toggle("active", a.dataset.view === v);
+  document.body.classList.toggle("is-login", v === "login");
+  for (const el of document.querySelectorAll(".savebar")) el.hidden = v !== "record";
+  closeNav(); window.scrollTo(0, 0);
+}
+function openNav() { $("nav").classList.add("open"); $("nav-backdrop").hidden = false; $("menu-btn").setAttribute("aria-expanded", "true"); }
+function closeNav() { $("nav").classList.remove("open"); $("nav-backdrop").hidden = true; $("menu-btn").setAttribute("aria-expanded", "false"); }
+$("menu-btn").addEventListener("click", openNav);
+$("menu-close").addEventListener("click", closeNav);
+$("nav-backdrop").addEventListener("click", closeNav);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeNav(); });
+window.addEventListener("hashchange", route);
+
+load(); renderHistory(); renderDashboard(); renderReport(); renderStudents(); renderAdmin(); renderAudit(); renderPrint(); route();
+</script>
